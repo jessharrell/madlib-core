@@ -18,7 +18,7 @@ namespace madlib_core.Controllers
 
         public async Task<IActionResult> Create(Puzzle puzzle)
         {
-            var request = new PutItemRequest();
+            var request = new PutItemRequest("foo", puzzle.AsDatabaseValue());
             await _dynamoClient.PutItemAsync(request, CancellationToken.None);
             return new AcceptedResult();
         }
