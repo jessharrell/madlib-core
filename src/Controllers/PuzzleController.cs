@@ -31,14 +31,13 @@ namespace madlib_core.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> Create(PuzzleDto puzzleDto)
         {
-            await CreatePuzzleAsync(puzzleDto);
+            await DatabaseHelper.EnsureTableExists(_dynamoClient, PuzzleDatabaseTable.TableName, PuzzleDatabaseTable.TableCreationRequest);
+            await CreatePuzzleRecordAsync(puzzleDto);
             return new AcceptedResult();
         }
 
-        private async Task CreatePuzzleAsync(PuzzleDto puzzleDto)
+        private async Task CreatePuzzleRecordAsync(PuzzleDto puzzleDto)
         {
-            await DatabaseHelper.EnsureTableExists(_dynamoClient, PuzzleDatabaseTable.TableName, PuzzleDatabaseTable.TableCreationRequest);
-
             var puzzle = new Puzzle(puzzleDto);
             var request = new PutItemRequest(PuzzleDatabaseTable.TableName, puzzle.AsDatabaseValue());
             await _dynamoClient.PutItemAsync(request, CancellationToken.None);

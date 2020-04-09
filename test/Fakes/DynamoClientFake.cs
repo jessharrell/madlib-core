@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
@@ -10,11 +11,13 @@ namespace madlib_core_tests.Fakes
     public class DynamoClientFake : IAmazonDynamoDB
     {
         public List<PutItemRequest> PutItems { get; }
+        public List<CreateTableRequest> CreatedTables { get; }
         public IClientConfig Config { get; }
         
         public DynamoClientFake()
         {
             PutItems = new List<PutItemRequest>();
+            CreatedTables = new List<CreateTableRequest>();
         }
         
         public void Dispose()
@@ -53,9 +56,10 @@ namespace madlib_core_tests.Fakes
             throw new System.NotImplementedException();
         }
 
-        public Task<CreateTableResponse> CreateTableAsync(CreateTableRequest request, CancellationToken cancellationToken = new CancellationToken())
+        public async Task<CreateTableResponse> CreateTableAsync(CreateTableRequest request, CancellationToken cancellationToken = new CancellationToken())
         {
-            throw new System.NotImplementedException();
+            CreatedTables.Add(request);
+            return new CreateTableResponse();
         }
 
         public Task<DeleteItemResponse> DeleteItemAsync(string tableName, Dictionary<string, AttributeValue> key, CancellationToken cancellationToken = new CancellationToken())
@@ -94,9 +98,16 @@ namespace madlib_core_tests.Fakes
             throw new System.NotImplementedException();
         }
 
-        public Task<DescribeTableResponse> DescribeTableAsync(DescribeTableRequest request, CancellationToken cancellationToken = new CancellationToken())
+        public async Task<DescribeTableResponse> DescribeTableAsync(DescribeTableRequest request, CancellationToken cancellationToken = new CancellationToken())
         {
-            throw new System.NotImplementedException();
+            if (CreatedTables.Any(r => r.TableName == request.TableName))
+            {
+                return new DescribeTableResponse();
+            }
+            else
+            {
+                throw new ResourceNotFoundException($"{request.TableName} table does not exist in fake");
+            }
         }
 
         public Task<GetItemResponse> GetItemAsync(string tableName, Dictionary<string, AttributeValue> key, CancellationToken cancellationToken = new CancellationToken())
