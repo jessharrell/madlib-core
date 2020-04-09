@@ -40,5 +40,13 @@ namespace madlib_core.Models
 
         public string Title { get; set; }
         public Guid Id { get; }
+
+        public PuzzleDto AsAPuzzleDto()
+        {
+            return new PuzzleDto()
+            {
+                Title = Title
+            };
+        }
     }
 }

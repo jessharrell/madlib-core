@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using madlib_core.Database;
 using madlib_core.DTOs;
+using madlib_core.Extensions;
 using madlib_core.Models;
 using madlib_core.Properties;
 using Microsoft.AspNetCore.Mvc;
@@ -22,10 +24,12 @@ namespace madlib_core.Controllers
             _dynamoClient = dynamoClient;
         }
 
-        [HttpGet("all")]
-        public IEnumerable<PuzzleDto> Get()
+        [HttpGet("[action]")]
+        public async Task<IEnumerable<PuzzleDto>> All()
         {
-            return new List<PuzzleDto>{new PuzzleDto{Title = "Foo"}}.ToArray();
+            await DatabaseHelper.EnsureTableExists(_dynamoClient, PuzzleDatabaseTable.TableName, PuzzleDatabaseTable.TableCreationRequest);
+            var dbScanResponse = await _dynamoClient.ScanAsync(new ScanRequest(PuzzleDatabaseTable.TableName), CancellationToken.None);
+            return dbScanResponse.Items.Select(i => i.AsAPuzzle().AsAPuzzleDto()).ToArray();
         }
 
         [HttpPost("[action]")]

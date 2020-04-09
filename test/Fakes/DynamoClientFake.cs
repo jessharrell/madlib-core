@@ -13,11 +13,14 @@ namespace madlib_core_tests.Fakes
         public List<PutItemRequest> PutItems { get; }
         public List<CreateTableRequest> CreatedTables { get; }
         public IClientConfig Config { get; }
-        
+        public Dictionary<string, List<Dictionary<string,AttributeValue>>> Table { get; }
+
+
         public DynamoClientFake()
         {
             PutItems = new List<PutItemRequest>();
             CreatedTables = new List<CreateTableRequest>();
+            Table = new Dictionary<string, List<Dictionary<string, AttributeValue>>>();
         }
         
         public void Dispose()
@@ -59,6 +62,7 @@ namespace madlib_core_tests.Fakes
         public async Task<CreateTableResponse> CreateTableAsync(CreateTableRequest request, CancellationToken cancellationToken = new CancellationToken())
         {
             CreatedTables.Add(request);
+            Table.Add(request.TableName, new List<Dictionary<string, AttributeValue>>());
             return new CreateTableResponse();
         }
 
@@ -100,7 +104,7 @@ namespace madlib_core_tests.Fakes
 
         public async Task<DescribeTableResponse> DescribeTableAsync(DescribeTableRequest request, CancellationToken cancellationToken = new CancellationToken())
         {
-            if (CreatedTables.Any(r => r.TableName == request.TableName))
+            if (CreatedTables.Any(r => r.TableName == request.TableName) || Table.ContainsKey(request.TableName))
             {
                 return new DescribeTableResponse();
             }
@@ -190,9 +194,9 @@ namespace madlib_core_tests.Fakes
             throw new System.NotImplementedException();
         }
 
-        public Task<ScanResponse> ScanAsync(ScanRequest request, CancellationToken cancellationToken = new CancellationToken())
+        public async Task<ScanResponse> ScanAsync(ScanRequest request, CancellationToken cancellationToken = new CancellationToken())
         {
-            throw new System.NotImplementedException();
+            return new ScanResponse() {Items = Table[request.TableName] };
         }
 
         public Task<UpdateItemResponse> UpdateItemAsync(string tableName, Dictionary<string, AttributeValue> key, Dictionary<string, AttributeValueUpdate> attributeUpdates,

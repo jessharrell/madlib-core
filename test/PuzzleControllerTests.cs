@@ -5,6 +5,7 @@ using FluentAssertions;
 using madlib_core.Controllers;
 using madlib_core.DTOs;
 using madlib_core.Extensions;
+using madlib_core.Models;
 using madlib_core.Properties;
 using madlib_core_tests.Fakes;
 using Xunit;
@@ -68,6 +69,34 @@ namespace madlib_core_tests
             await controller.Create(new PuzzleDto{Title = "Incoming puzzle"});
 
             dynamoFake.CreatedTables.Count(r => r.TableName == PuzzleDatabaseTable.TableName).Should().Be(1);
+        }
+
+        [Fact]
+        public async void GivenOnePuzzleInTableAlreadyWhenAllThenReturnsSinglePuzzle()
+        {
+            var dynamoFake = new DynamoClientFake();
+            var controller = new PuzzleController(dynamoFake);
+
+            dynamoFake.Table.Add(PuzzleDatabaseTable.TableName, new List<Dictionary<string, AttributeValue>>());
+            dynamoFake.Table[PuzzleDatabaseTable.TableName].Add(new Puzzle(){Title = "One Puzzle"}.AsDatabaseValue());
+
+            var allPuzzleResponse = (await controller.All()).ToList();
+
+            allPuzzleResponse.Count().Should().Be(1);
+            allPuzzleResponse.First().Title.Should().Be("One Puzzle");
+        }
+
+        [Fact]
+        public async void GivenNoPuzzleTableWhenAllThenCreateTableAndReturnsEmptyArray()
+        {
+            
+            var dynamoFake = new DynamoClientFake();
+            var controller = new PuzzleController(dynamoFake);
+
+            var allPuzzleResponse = (await controller.All()).ToList();
+
+            dynamoFake.CreatedTables.Count(r => r.TableName == PuzzleDatabaseTable.TableName).Should().Be(1);
+            allPuzzleResponse.Count().Should().Be(0);
         }
     }
 }
