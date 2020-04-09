@@ -1,10 +1,9 @@
-using System;
 using System.Linq;
 using FluentAssertions;
 using madlib_core.Controllers;
 using madlib_core.DTOs;
 using madlib_core.Extensions;
-using madlib_core.Models;
+using madlib_core.Properties;
 using madlib_core_tests.Fakes;
 using Xunit;
 
@@ -18,7 +17,7 @@ namespace madlib_core_tests
             var dynamoFake = new DynamoClientFake();
             var controller = new PuzzleController(dynamoFake);
 
-            await controller.Create(new PuzzleDto());
+            controller.Create(new PuzzleDto());
 
             Assert.Single(dynamoFake.PutItems);
         }
@@ -30,9 +29,21 @@ namespace madlib_core_tests
             var controller = new PuzzleController(dynamoFake);
 
             var givenPuzzle = new PuzzleDto{Title = "Incoming puzzle"};
-            await controller.Create(givenPuzzle);
+            controller.Create(givenPuzzle);
 
             dynamoFake.PutItems.First().Item.AsAPuzzle().Title.Should().Be("Incoming puzzle");
+        }
+        
+        [Fact]
+        public async void GivenNewPuzzleWhenCreateThenRecordCreatedInPuzzleTable()
+        {
+            var dynamoFake = new DynamoClientFake();
+            var controller = new PuzzleController(dynamoFake);
+
+            var givenPuzzle = new PuzzleDto{Title = "Incoming puzzle"};
+            controller.Create(givenPuzzle);
+
+            dynamoFake.PutItems.First().TableName.Should().Be(PuzzleDatabaseTable.TableName);
         }
     }
 }
