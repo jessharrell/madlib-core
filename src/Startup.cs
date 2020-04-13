@@ -17,8 +17,11 @@ using Microsoft.Extensions.Logging;
 
 namespace madlib_core
 {
+    
     public class Startup
     {
+        private const string AllowOrigins = "_myAllowSpecificOrigins";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -44,6 +47,15 @@ namespace madlib_core
             {
                 // services.AddAWSService<IAmazonDynamoDB>();
             }
+            
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: AllowOrigins,
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:4200");
+                    });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,6 +68,8 @@ namespace madlib_core
 
             app.UseHttpsRedirection();
             app.UseRouting();
+            
+            app.UseCors(AllowOrigins);
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
