@@ -53,7 +53,7 @@ namespace madlib_core
                 options.AddPolicy(name: AllowOrigins,
                     builder =>
                     {
-                        builder.WithOrigins("http://localhost:4200");
+                        builder.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader();
                     });
             });
         }

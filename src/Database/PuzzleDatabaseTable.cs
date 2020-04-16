@@ -19,7 +19,7 @@ namespace madlib_core.Properties
                 {
                     AttributeName = "Title",
                     AttributeType = "S"
-                }
+                },
             },
             KeySchema = new List<KeySchemaElement>
             {
